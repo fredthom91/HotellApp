@@ -13,5 +13,7 @@ namespace HotellApp.HotellDatabase
         public string PhoneNumber { get; set; }
         public int RoomID { get; set; }
         public int BookingID { get; set; }
+
+        
     }
 }
