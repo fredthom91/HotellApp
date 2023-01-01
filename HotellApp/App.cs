@@ -1,186 +1,109 @@
-﻿using HotellApp.HotellDatabase;
+﻿
+
+using HotellApp.Controllers;
+using HotellApp.Data;
+using Spectre.Console;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.Intrinsics.Arm;
+using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading.Tasks;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
 namespace HotellApp
 {
     public class App
     {
-        List<Customer> saveCustomer = new Customer();
-        var booking = new Booking();
-        var room = new Room();
-
-        public void AddBooking()
-        {
-            Console.WriteLine("LÄGG TILL EN BOKNING");
-            Console.WriteLine("---------------------------");
-            Console.WriteLine(" ");
-            Console.WriteLine("Sparade Kunder: ");
-            foreach(var customer in saveCustomer)
-            {
-                Console.WriteLine($"Namn: {customer.FirstName} {customer.LastName} ----- Telefonnr: {customer.PhoneNumber}");
-            }
-            Console.WriteLine("--------------------------");
-            Console.WriteLine("Skriv in namn på den kund du vill boka: ");
-            var name = Console.ReadLine();
-            Console.WriteLine("Tillgängliga Rum:")
-
-        }
-        public void ChangeCustomer()
-        {
-            
-            Console.WriteLine("ÄNDRA/HANTERA EN KUND");
-            Console.WriteLine("----------------------------");
-            Console.WriteLine(" ");
-            Console.WriteLine("Skriv in namn för kunden du vill ändra: ");
-            var selectedcustomer = Console.ReadLine();
-            var splitName = selectedcustomer.Split(' ');
-            var firstName = splitName[0];
-            var lastName = splitName[1];
-            Console.WriteLine("Skriv in kundens telefonnummer: ");
-            var phonenmbr = Console.ReadLine();
-            
-            Console.WriteLine("1. Ändra info");
-            Console.WriteLine("2. Ta bort kunden");
-            var select = Convert.ToInt32(Console.ReadLine());
-            if(select == 1)
-            {
-                Console.WriteLine("Skriv in nytt namn: ");
-                var name = Console.ReadLine();
-                var newName = name.Split(' ');
-                var newFirstName = newName[0];
-                var newLastName = newName[1];
-                saveCustomer.Remove(firstName);
-                saveCustomer.Add(newFirstName);
-                saveCustomer.Remove(lastName);
-                saveCustomer.Add(newLastName);
-                Console.WriteLine("Skriv in nytt telefonnummer: ");
-                var newPhone = Console.ReadLine();
-                saveCustomer.Remove(phonenmbr);
-                saveCustomer.Add(newPhone);
-                Console.WriteLine("Tack! Kund ändrad");
-                
-            }
-            if(select == 2)
-            {
-                saveCustomer.Remove(firstName);
-                saveCustomer.Remove(lastName);
-                saveCustomer.Remove(phonenmbr);
-            }
-        }
-        public void SaveCustomer(string firstname, string lastname, string phone)
-        {
-            
-            if (firstname == null || lastname == null || phone == null)
-            {
-                
-                saveCustomer.FirstName = firstname;
-                saveCustomer.LastName = lastname;
-                saveCustomer.PhoneNumber = phone;
-            }
-            
-        }
-        public void CustomizeRoom()
-        {
-            Console.WriteLine("HANTERA ETT RUM");
-            Console.WriteLine("------------------");
-            Console.WriteLine(" ");
-            Console.WriteLine("Skriv in rumsnumret på det rum du vill ändra/hantera: ");
-            var roomSelect = Convert.ToInt31(Console.ReadLine());
-            Console.WriteLine("1. Lägg till Sängar");
-            Console.WriteLine("2. Ta bort Sängar");
-            Console.WriteLine("3. Ta bort rum");
-        }
-        public void SetCustomer()
-        {
-            
-            Console.WriteLine("LÄGG TILL KUND");
-            Console.WriteLine("----------------");
-            Console.WriteLine(" ");
-            Console.WriteLine("Kundens namn: ");
-            var name = Console.ReadLine();
-            var fullName = name.Split(' ');
-            var firstName = fullName[0];
-            var lastName = fullName[1];
-
-            Console.WriteLine("Kundens telefonnummer: ");
-            var phoneNmbr = Console.ReadLine();
-            SaveCustomer(firstName, lastName, phoneNmbr);
-            Console.WriteLine("Kund tillagd!");
-            Console.WriteLine("Vill du lägga till en ny kund? (J/N): ");
-            var sel = Console.ReadLine();
-            if (sel == "J")
-            {
-                continue;
-            }
-            if (sel == "N")
-            {
-                break;
-            }
-            else
-            {
-                Console.WriteLine("Felaktig inmatning, var god svara med J eller N");
-            }
-
-        }
+              
         public void Run()
         {
-            Console.WriteLine("BOKNINGS MENY");
-            Console.WriteLine("---------------------------------");
-            Console.WriteLine(" ");
-            Console.WriteLine("1. Registrera ett rum");
-            Console.WriteLine("2. Ändra/Hantera ett rum");
-            Console.WriteLine("3. Registrera en kund");
-            Console.WriteLine("4. Ändra en kund");
-            Console.WriteLine("5. Lägg till en bokning");
-            Console.WriteLine("6. Ändra en bokning");
-            Console.WriteLine("7. Ta bort en bokning");
-            Console.WriteLine("8. Avsluta");
-            var select = Convert.ToInt32(Console.ReadLine());
 
-            if (select == 1)
+            var buildApp = new CreateBuild();
+            var context = buildApp.AppBuilder();
+            var customerConfig = new CustomerController(context);
+            var roomConfig = new RoomController(context);
+            var bookingConfig = new BookingController(context);
+
+            while (true)
             {
-                while (true)
-                Console.WriteLine("Skriv in rummets yta: ");
-                var newRoom = Convert.ToInt31(Console.ReadLine());
-                Console.WriteLine("Rummet är registrerat!");
-                Console.WriteLine("Vill du lägga till ett till rum? (J/N): ");
-                var sel = Console.ReadLine();
-                if(sel == "J")
+                var menu = CustomizationMenu.Menu();
+                if (menu == 1)
                 {
-                    continue;
+                    roomConfig.CreateRoom();
                 }
-                if(sel == "N")
+                if (menu == 5)
+                {
+                    customerConfig.CreateCustomer();
+                }
+                if (menu == 2)
+                {
+                    roomConfig.ShowAllRooms();
+                }
+                if (menu == 6)
+                {
+                    customerConfig.ShowAllCustomers();
+                }
+                if (menu == 3)
+                {
+                    roomConfig.HandleRooms();
+                }
+                if (menu == 7)
+                {
+                    customerConfig.HandleCustomer();
+                }
+                if (menu == 4)
+                {
+                    roomConfig.DeleteRoom();
+                }
+                if (menu == 8)
+                {
+                    customerConfig.DeleteCustomer();
+                }
+                if (menu == 9)
+                {
+                    roomConfig.HandleBeds();
+                }
+                if (menu == 10)
+                {
+                    roomConfig.RemoveBeds();
+                }
+                if (menu == 11)
+                {
+                    while (true)
+                    {
+                        var bookingMenu = BookingMenu.Menu();
+
+                        if (bookingMenu == 1)
+                        {
+                            bookingConfig.CreateBooking();
+                        }
+                        if (bookingMenu == 2)
+                        {
+                            bookingConfig.ShowAllBookings();
+                        }
+                        if (bookingMenu == 3)
+                        {
+                            bookingConfig.HandleBooking();
+                        }
+                        if (bookingMenu == 4)
+                        {
+                            bookingConfig.DeleteBooking();
+                        }
+                        if (bookingMenu == 0)
+                        {
+                            break;
+                        }
+                    }
+                }
+                if (menu == 0)
                 {
                     break;
                 }
-                else
-                {
-                    Console.WriteLine("Felaktig inmatning, var god svara med J eller N");
-                }
-                                
-            }
-            if(select == 2)
-            {
-                CustomizeRoom();
-
-            }
-            if(select == 3)
-            {
-                SetCustomer();
-            }
-            if(select == 4)
-            {
-                ChangeCustomer();
-            }
-            if(select == 5)
-            {
-
             }
         }
-        
+
+
     }
 }
