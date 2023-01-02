@@ -307,6 +307,7 @@ public class BookingController
                     Console.WriteLine(" ");
                     Console.WriteLine("tryck på valfri tangent för att fortsätta");
                     Console.ReadKey();
+                    break;
                 }
             }
             catch (Exception ex)
@@ -314,6 +315,7 @@ public class BookingController
                 Console.WriteLine("Felaktig Inmatning.");
                 Console.WriteLine("Tryck på valfri tangent för att fortsätta.");
                 Console.ReadKey();
+                break;
             }
     }
 
@@ -378,6 +380,7 @@ public class BookingController
                 Console.WriteLine("Felaktig Inmatning.");
                 Console.WriteLine("Tryck på valfri tangent för att fortsätta.");
                 Console.ReadKey();
+                break;
             }
     }
 
