@@ -22,3 +22,10 @@ ORDER BY RoomPrice DESC
 
 SELECT * FROM Rooms WHERE Rooms.RoomType = 'dubbel'
 ORDER BY Rooms.AmountOfBeds, Rooms.RoomSize DESC
+
+SELECT c.CustomerID, c.FirstName, b.StartDate
+FROM Customers c, Bookings b
+WHERE b.CustomerID = 1
+(SELECT BookingDate
+FROM Bookings
+WHERE BookingID = 1);
