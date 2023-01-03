@@ -1,6 +1,8 @@
 ﻿using HotellApp.Data;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Query.Internal;
 using Spectre.Console;
+
 
 namespace HotellApp.Controllers;
 
@@ -168,9 +170,7 @@ public class BookingController
             }
             catch (Exception ex)
             {
-                Console.WriteLine("Felaktig inmatning. Var god försök igen");
-                Console.WriteLine("tryck på valfri tangent för att fortsätta.");
-                Console.ReadKey();
+                new ErrorHandling().CatchMessage();
             }
     }
 
@@ -300,21 +300,13 @@ public class BookingController
                 }
                 else
                 {
-                    Console.WriteLine(" ");
-                    Console.WriteLine("Det finns inga bokningar aktiva, var god skapa en.");
-                    Console.WriteLine(" ");
-                    Console.WriteLine("-------------------------");
-                    Console.WriteLine(" ");
-                    Console.WriteLine("tryck på valfri tangent för att fortsätta");
-                    Console.ReadKey();
+                    new ErrorHandling().NoActiveBookings();
                     break;
                 }
             }
             catch (Exception ex)
             {
-                Console.WriteLine("Felaktig Inmatning.");
-                Console.WriteLine("Tryck på valfri tangent för att fortsätta.");
-                Console.ReadKey();
+                new ErrorHandling().CatchMessage();
                 break;
             }
     }
@@ -365,21 +357,13 @@ public class BookingController
                 }
                 else
                 {
-                    Console.WriteLine(" ");
-                    Console.WriteLine("Det finns inga bokningar aktiva, var god skapa en.");
-                    Console.WriteLine(" ");
-                    Console.WriteLine("-------------------------");
-                    Console.WriteLine(" ");
-                    Console.WriteLine("tryck på valfri tangent för att fortsätta");
-                    Console.ReadKey();
+                    new ErrorHandling().NoActiveBookings();
                     break;
                 }
             }
             catch (Exception ex)
             {
-                Console.WriteLine("Felaktig Inmatning.");
-                Console.WriteLine("Tryck på valfri tangent för att fortsätta.");
-                Console.ReadKey();
+                new ErrorHandling().CatchMessage();
                 break;
             }
     }
@@ -445,12 +429,9 @@ public class BookingController
         AnsiConsole.Write(table5);
 
 
-        if (Context.Bookings == null)
+        if (!Context.Bookings.Any())
         {
-            Console.WriteLine("Det finns inga bokningar aktiva.");
-            Console.WriteLine(" ");
-            Console.WriteLine("Tryck på valfri tangent för att fortsätta");
-            Console.ReadKey();
+            new ErrorHandling().NoActiveBookings();
         }
         else
         {
@@ -458,4 +439,5 @@ public class BookingController
             Console.ReadKey();
         }
     }
+
 }

@@ -41,11 +41,9 @@ public class CustomerController
                 if (select == "J") CreateCustomer();
                 if (select == "N") break;
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                Console.WriteLine("Felaktig Inmatning.");
-                Console.WriteLine("Tryck på valfri tangent för att fortsätta.");
-                Console.ReadKey();
+                new ErrorHandling().CatchMessage();
             }
     }
 
@@ -137,9 +135,7 @@ public class CustomerController
             }
             catch (Exception ex)
             {
-                Console.WriteLine("Felaktig Inmatning.");
-                Console.WriteLine("Tryck på valfri tangent för att fortsätta.");
-                Console.ReadKey();
+                new ErrorHandling().CatchMessage();
             }
         }
     }
@@ -184,9 +180,7 @@ public class CustomerController
             }
             catch (Exception ex)
             {
-                Console.WriteLine("Felaktig Inmatning.");
-                Console.WriteLine("Tryck på valfri tangent för att fortsätta.");
-                Console.ReadKey();
+                new ErrorHandling().CatchMessage();
             }
         }
     }

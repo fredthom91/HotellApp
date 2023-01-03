@@ -51,11 +51,9 @@ public class RoomController
                 if (select == "J") CreateRoom();
                 if (select == "N") break;
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                Console.WriteLine("Felaktig Inmatning.");
-                Console.WriteLine("Tryck på valfri tangent för att fortsätta.");
-                Console.ReadKey();
+                new ErrorHandling().CatchMessage();
             }
     }
 
@@ -153,9 +151,7 @@ public class RoomController
             }
             catch (Exception ex)
             {
-                Console.WriteLine("Felaktig Inmatning.");
-                Console.WriteLine("Tryck på valfri tangent för att fortsätta.");
-                Console.ReadKey();
+                new ErrorHandling().CatchMessage();
             }
         }
     }
@@ -219,7 +215,7 @@ public class RoomController
                     updatedRoom.RoomSize > 65 &&
                     updatedRoom.AmountOfBeds == 2)
                 {
-                    Console.WriteLine("Du kan lägga till 2 extra sängar.");
+                    Console.WriteLine("2 extra sängar är möjliga för detta rum.");
                     Console.WriteLine("Lägg till säng/sängar? (J/N): ");
                     var choice2 = Console.ReadLine().ToUpper();
 
@@ -263,7 +259,7 @@ public class RoomController
                     updatedRoom.RoomSize > 65 &&
                     updatedRoom.AmountOfBeds == 3)
                 {
-                    Console.WriteLine("Du kan lägga till 1 extra säng.");
+                    Console.WriteLine("1 extra säng är möjlig för detta rum.");
                     Console.WriteLine("Lägg till säng? (J/N): ");
                     var choice4 = Console.ReadLine().ToUpper();
                     if (choice4 == "J")
@@ -306,9 +302,7 @@ public class RoomController
             }
             catch (Exception ex)
             {
-                Console.WriteLine("Felaktig Inmatning.");
-                Console.WriteLine("Tryck på valfri tangent för att fortsätta.");
-                Console.ReadKey();
+                new ErrorHandling().CatchMessage();
             }
         }
     }
@@ -380,9 +374,7 @@ public class RoomController
             }
             catch (Exception ex)
             {
-                Console.WriteLine("Felaktig Inmatning.");
-                Console.WriteLine("Tryck på valfri tangent för att fortsätta.");
-                Console.ReadKey();
+                new ErrorHandling().CatchMessage();
             }
         }
     }
@@ -428,9 +420,7 @@ public class RoomController
             }
             catch (Exception ex)
             {
-                Console.WriteLine("Felaktig Inmatning.");
-                Console.WriteLine("Tryck på valfri tangent för att fortsätta.");
-                Console.ReadKey();
+                new ErrorHandling().CatchMessage();
             }
         }
     }
