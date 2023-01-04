@@ -1,8 +1,6 @@
 ﻿using HotellApp.Data;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Query.Internal;
 using Spectre.Console;
-
 
 namespace HotellApp.Controllers;
 
@@ -22,153 +20,42 @@ public class BookingController
         var table = new Table();
         var _table = new Table();
         var newBooking = new Booking();
+        new CustomerController(Context).GetCustomers();
 
-
-        AnsiConsole.WriteLine("ALLA REGISTRERADE KUNDER");
-        AnsiConsole.WriteLine(" ");
-        AnsiConsole.WriteLine("------------------------");
-        AnsiConsole.WriteLine(" ");
-        table.AddColumn("Kundnummer");
-        table.AddColumn(new TableColumn("Förnamn").Centered());
-        table.AddColumn(new TableColumn("Efternamn").Centered());
-
-
-        foreach (var custom in Context.Customers.OrderBy(c => c.CustomerID))
-            table.AddRow($"{custom.CustomerID}", $"{custom.FirstName}", $"{custom.LastName}");
-        AnsiConsole.Write(table);
 
         while (true)
             try
             {
-                Console.WriteLine("Ange kundnummer för den gäst som bokningen ska stå på: ");
-                var customerId = Convert.ToInt32(Console.ReadLine());
-                var customer = Context.Customers.First(c => c.CustomerID == customerId);
-                newBooking.Customer = customer;
-
+                SetCustomer(newBooking);
 
                 Console.Clear();
 
                 Console.WriteLine("Skriv in antal nätter som skall bokas: ");
                 var totalNights = Convert.ToInt32(Console.ReadLine());
 
+                SetStartDate(newBooking);
 
-                newBooking.StartDate = new DateTime(2014, 01, 03, 23, 59, 59);
-                while (newBooking.StartDate < DateTime.Now.Date)
-                {
-                    Console.WriteLine("Skriv in datum för incheckning (yyyy-mm-dd): ");
-                    newBooking.StartDate = Convert.ToDateTime(Console.ReadLine());
-                }
+                SetEndDate(newBooking, totalNights);
 
+                var newBookingAllDates = ShowAllBookingDates(newBooking);
 
-                if (totalNights == 1) newBooking.EndDate = newBooking.StartDate;
-                else if (totalNights > 1) newBooking.EndDate = newBooking.StartDate.AddDays(totalNights);
-
-
-                var newBookingAllDates = new List<DateTime>();
-                for (var dt = newBooking.StartDate; dt <= newBooking.EndDate; dt = dt.AddDays(1))
-                    newBookingAllDates.Add(dt);
-
-
-                var availableRooms = new List<Room>();
-
-                foreach (var room in Context.Rooms.ToList())
-                {
-                    var roomIsFree = true;
-                    foreach (var booking in Context.Bookings.Include(b => b.Room).Where(b => b.Room == room))
-                    {
-                        for (var dt = booking.StartDate; dt <= booking.EndDate; dt = dt.AddDays(1))
-                            if (newBookingAllDates.Contains(dt))
-                                roomIsFree = false;
-
-
-                        if (!roomIsFree) break;
-                    }
-
-
-                    if (roomIsFree) availableRooms.Add(room);
-                }
-
-
-                Console.Clear();
-                Console.WriteLine("DIN BOKNING");
-                Console.WriteLine(" ");
-                Console.WriteLine("---------------------");
-
-                _table.AddColumn("Start");
-                _table.AddColumn(new TableColumn("Slut").Centered());
-                _table.AddColumn(new TableColumn("Antal nätter").Centered());
-
-                _table.AddRow($" {newBooking.StartDate.ToShortDateString()}" +
-                              $"{newBooking.EndDate.ToShortDateString()}" +
-                              $"{totalNights}");
-
-                AnsiConsole.Write(_table);
+                var availableRooms = GetAvailableRooms(newBooking, newBookingAllDates);
 
 
                 if (availableRooms.Count() < 1)
                 {
-                    Console.ForegroundColor = ConsoleColor.Red;
-                    Console.WriteLine("Finns inga lediga rum för perioden du vill boka, försök med annat datum");
-                    Console.ForegroundColor = ConsoleColor.Gray;
-
-                    Console.WriteLine("tryck på valfri tangent för att fortsätta.");
-                    Console.ReadKey();
+                    NoAvailableRooms();
                     return;
                 }
 
-                Console.Clear();
-                var table2 = new Table();
-                Console.WriteLine("DOM HÄR RUMMEN ÄR LEDIGA");
-                Console.WriteLine(" ");
-                Console.WriteLine("---------------------");
+                ShowAvailableRooms(availableRooms);
 
-                table2.AddColumn("Rumsnummer");
-                table2.AddColumn(new TableColumn("Rumstyp").Centered());
-                table2.AddColumn(new TableColumn("Storlek").Centered());
-                table2.AddColumn(new TableColumn("Antal sängar").Centered());
-                table2.AddColumn(new TableColumn("Pris").Centered());
+                SetRoom(newBooking);
 
-                foreach (var room in availableRooms.OrderBy(r => r.RoomID))
-                    table2.AddRow($"{room.RoomID}",
-                        $"{room.RoomType}",
-                        $"{room.RoomSize}",
-                        $"{room.AmountOfBeds}",
-                        $"{room.RoomPrice}");
-                AnsiConsole.Write(table2);
-
-
-                Console.WriteLine("Välj rum, ange RUMSNUMMER: ");
-                var roomNumber = Convert.ToInt32(Console.ReadLine());
-                newBooking.Room = Context.Rooms
-                    .Where(r => r.RoomID == roomNumber)
-                    .FirstOrDefault();
-
-                Context.Add(newBooking);
-                Context.SaveChanges();
-                var table3 = new Table();
-
-
-                Console.ForegroundColor = ConsoleColor.Green;
-                Console.Clear();
-                Console.WriteLine("Bokning Genomförd!");
-                Console.WriteLine("----------------------");
-
-                table3.AddColumn("Start");
-                table3.AddColumn(new TableColumn("Slut").Centered());
-                table3.AddColumn(new TableColumn("Antal nätter").Centered());
-
-                table3.AddRow($" {newBooking.StartDate.ToShortDateString()}",
-                    $"{newBooking.EndDate.ToShortDateString()}",
-                    $"{totalNights}");
-                AnsiConsole.Write(table3);
-
-                Console.ForegroundColor = ConsoleColor.Gray;
-
-                Console.WriteLine("tryck på valfri tangent för att fortsätta");
-                Console.ReadKey();
+                BookingSuccess(newBooking, totalNights);
                 break;
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 new ErrorHandling().CatchMessage();
             }
@@ -232,42 +119,9 @@ public class BookingController
                     {
                         Console.Clear();
 
+                        new CustomerController(Context).GetCustomers();
 
-                        var table = new Table();
-
-
-                        AnsiConsole.WriteLine("ALLA REGISTRERADE KUNDER");
-                        AnsiConsole.WriteLine("------------------------");
-                        AnsiConsole.WriteLine(" ");
-                        table.AddColumn("Kundnummer");
-                        table.AddColumn(new TableColumn("Förnamn").Centered());
-                        table.AddColumn(new TableColumn("Efternamn").Centered());
-                        table.AddColumn(new TableColumn("Telefonnummer").Centered());
-
-
-                        foreach (var customer in Context.Customers.OrderBy(c => c.CustomerID))
-                            table.AddRow($"{customer.CustomerID}",
-                                $"{customer.FirstName}",
-                                $"{customer.LastName}",
-                                $"{customer.PhoneNumber}");
-                        AnsiConsole.Write(table);
-
-                        Console.WriteLine(" ");
-                        Console.WriteLine("NY INNEHAVARE AV BOKNING");
-                        Console.WriteLine(" ");
-                        Console.WriteLine("---------------------------");
-                        Console.WriteLine(" ");
-                        Console.WriteLine("Förnamn: ");
-                        var newBookingName = Console.ReadLine();
-                        Console.WriteLine("Efternamn: ");
-                        var newBookinglastName = Console.ReadLine();
-                        Console.WriteLine("Telefonnummer: ");
-                        var newBookingPhone = Console.ReadLine();
-                        updatedBooking.Customer.ChangeCustomer(newBookingName, newBookinglastName, newBookingPhone);
-                        Context.SaveChanges();
-                        Console.WriteLine("Bokning Uppdaterad!");
-                        Console.WriteLine("tryck på valfri tangent för att fortsätta");
-                        Console.ReadKey();
+                        NewCustomerOnBooking(updatedBooking);
                         break;
                     }
 
@@ -276,27 +130,11 @@ public class BookingController
                         Console.Clear();
 
                         GetBookings();
-                        Console.WriteLine(" ");
-                        Console.WriteLine("NYTT DATUM FÖR BOKNING");
-                        Console.WriteLine(" ");
-                        Console.WriteLine("---------------------------");
-                        Console.WriteLine(" ");
-                        Console.Write("Ange bokningsnummer för den bokning du vill ändra: ");
-                        var bookingID = int.Parse(Console.ReadLine());
-                        var newBooking = Context.Bookings.First(x => x.BookingID == bookingId);
-                        Console.Write("\n Skriv in antal nätter?: ");
-                        var totalNights = int.Parse(Console.ReadLine());
-                        Console.Write("Datum för incheckning (yyyy-mm-dd): ");
-                        var checkInDate = Convert.ToDateTime(Console.ReadLine());
-                        var checkOutDate = checkInDate.AddDays(totalNights);
-                        newBooking.UpdatedReservationDate(checkInDate, checkOutDate);
-
-                        Context.SaveChanges();
-                        Console.WriteLine("Bokning Uppdaterad!");
-                        Console.WriteLine("tryck på valfri tangent för att fortsätta");
-                        Console.ReadKey();
+                        NewDateForBooking(updatedBooking);
                         break;
                     }
+
+                    if (select == 0) break;
                 }
                 else
                 {
@@ -304,7 +142,7 @@ public class BookingController
                     break;
                 }
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 new ErrorHandling().CatchMessage();
                 break;
@@ -336,11 +174,7 @@ public class BookingController
 
                     if (choice == "J")
                     {
-                        Context.Bookings.Remove(deleteBooking);
-                        Context.SaveChanges();
-                        Console.WriteLine("Bokning raderad!");
-                        Console.WriteLine("tryck på valfri tangent för att fortsätta.");
-                        Console.ReadKey();
+                        DeleteBooking(deleteBooking);
                         break;
                     }
 
@@ -361,7 +195,7 @@ public class BookingController
                     break;
                 }
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 new ErrorHandling().CatchMessage();
                 break;
@@ -440,4 +274,177 @@ public class BookingController
         }
     }
 
+    public void SetStartDate(Booking newBooking)
+    {
+        newBooking.StartDate = new DateTime(2014, 01, 03, 23, 59, 59);
+        while (newBooking.StartDate < DateTime.Now.Date)
+        {
+            Console.WriteLine("Skriv in datum för incheckning (yyyy-mm-dd): ");
+            newBooking.StartDate = Convert.ToDateTime(Console.ReadLine());
+        }
+    }
+
+    public void SetEndDate(Booking newBooking, int totalNights)
+    {
+        if (totalNights == 1) newBooking.EndDate = newBooking.StartDate;
+        else if (totalNights > 1) newBooking.EndDate = newBooking.StartDate.AddDays(totalNights);
+    }
+
+    public void SetCustomer(Booking newBooking)
+    {
+        Console.WriteLine("Ange kundnummer för den gäst som bokningen ska stå på: ");
+        var customerId = Convert.ToInt32(Console.ReadLine());
+        var customer = Context.Customers.First(c => c.CustomerID == customerId);
+        newBooking.Customer = customer;
+    }
+
+    public List<DateTime> ShowAllBookingDates(Booking newBooking)
+    {
+        var newBookingAllDates = new List<DateTime>();
+        for (var dt = newBooking.StartDate; dt <= newBooking.EndDate; dt = dt.AddDays(1))
+            newBookingAllDates.Add(dt);
+        return newBookingAllDates;
+    }
+
+    public List<Room> GetAvailableRooms(Booking newBooking, List<DateTime> newBookingAllDates)
+    {
+        var availableRooms = new List<Room>();
+        foreach (var room in Context.Rooms.ToList())
+        {
+            var roomIsFree = true;
+            foreach (var booking in Context.Bookings.Include(b => b.Room).Where(b => b.Room == room))
+            {
+                for (var dt = booking.StartDate; dt <= booking.EndDate; dt = dt.AddDays(1))
+                    if (newBookingAllDates.Contains(dt))
+                        roomIsFree = false;
+
+
+                if (!roomIsFree) break;
+            }
+
+
+            if (roomIsFree) availableRooms.Add(room);
+        }
+
+        return availableRooms;
+    }
+
+    public void NoAvailableRooms()
+    {
+        Console.ForegroundColor = ConsoleColor.Red;
+        Console.WriteLine("Finns inga lediga rum för perioden du vill boka, försök med annat datum");
+        Console.ForegroundColor = ConsoleColor.Gray;
+
+        Console.WriteLine("tryck på valfri tangent för att fortsätta.");
+        Console.ReadKey();
+    }
+
+    public void ShowAvailableRooms(List<Room> availableRooms)
+
+    {
+        Console.Clear();
+        var table2 = new Table();
+        Console.WriteLine("DOM HÄR RUMMEN ÄR LEDIGA");
+        Console.WriteLine(" ");
+        Console.WriteLine("---------------------");
+
+        table2.AddColumn("Rumsnummer");
+        table2.AddColumn(new TableColumn("Rumstyp").Centered());
+        table2.AddColumn(new TableColumn("Storlek").Centered());
+        table2.AddColumn(new TableColumn("Antal sängar").Centered());
+        table2.AddColumn(new TableColumn("Pris").Centered());
+
+        foreach (var room in availableRooms.OrderBy(r => r.RoomID))
+            table2.AddRow($"{room.RoomID}",
+                $"{room.RoomType}",
+                $"{room.RoomSize}",
+                $"{room.AmountOfBeds}",
+                $"{room.RoomPrice}");
+        AnsiConsole.Write(table2);
+    }
+
+    public void SetRoom(Booking newBooking)
+    {
+        Console.WriteLine("Välj rum, ange RUMSNUMMER: ");
+        var roomNumber = Convert.ToInt32(Console.ReadLine());
+        newBooking.Room = Context.Rooms
+            .Where(r => r.RoomID == roomNumber)
+            .FirstOrDefault();
+
+        Context.Add(newBooking);
+        Context.SaveChanges();
+    }
+
+    public void BookingSuccess(Booking newBooking, int totalNights)
+    {
+        var table3 = new Table();
+        Console.ForegroundColor = ConsoleColor.Green;
+        Console.Clear();
+        Console.WriteLine("Bokning Genomförd!");
+        Console.WriteLine("----------------------");
+
+        table3.AddColumn("Start");
+        table3.AddColumn(new TableColumn("Slut").Centered());
+        table3.AddColumn(new TableColumn("Antal nätter").Centered());
+
+        table3.AddRow($" {newBooking.StartDate.ToShortDateString()}",
+            $"{newBooking.EndDate.ToShortDateString()}",
+            $"{totalNights}");
+        AnsiConsole.Write(table3);
+
+        Console.ForegroundColor = ConsoleColor.Gray;
+
+        Console.WriteLine("tryck på valfri tangent för att fortsätta");
+        Console.ReadKey();
+    }
+
+    public void NewCustomerOnBooking(Booking updatedBooking)
+    {
+        new CustomerController(Context).GetCustomers();
+        Console.WriteLine(" ");
+        Console.WriteLine("NY INNEHAVARE AV BOKNING");
+        Console.WriteLine(" ");
+        Console.WriteLine("---------------------------");
+        Console.WriteLine(" ");
+
+        Console.Write("Välj Kundnummer för ersättaren på bokningen: ");
+        var customerId = Convert.ToInt32(Console.ReadLine());
+        var customer = Context.Customers.First(c => c.CustomerID == customerId);
+        updatedBooking.Customer = customer;
+        Context.SaveChanges();
+        Console.WriteLine("Bokning Uppdaterad!");
+        Console.WriteLine("tryck på valfri tangent för att fortsätta");
+        Console.ReadKey();
+    }
+
+    public void NewDateForBooking(Booking updatedBooking)
+    {
+        Console.WriteLine(" ");
+        Console.WriteLine("NYTT DATUM FÖR BOKNING");
+        Console.WriteLine(" ");
+        Console.WriteLine("---------------------------");
+        Console.WriteLine(" ");
+
+
+        Console.Write("Skriv in antal nätter?: ");
+        var totalNights = int.Parse(Console.ReadLine());
+        Console.Write("Datum för incheckning (yyyy-mm-dd): ");
+        var checkInDate = Convert.ToDateTime(Console.ReadLine());
+        var checkOutDate = checkInDate.AddDays(totalNights);
+        updatedBooking.UpdatedReservationDate(checkInDate, checkOutDate);
+
+        Context.SaveChanges();
+        Console.WriteLine("Bokning Uppdaterad!");
+        Console.WriteLine("tryck på valfri tangent för att fortsätta");
+        Console.ReadKey();
+    }
+
+    public void DeleteBooking(Booking deleteBooking)
+    {
+        Context.Bookings.Remove(deleteBooking);
+        Context.SaveChanges();
+        Console.WriteLine("Bokning raderad!");
+        Console.WriteLine("tryck på valfri tangent för att fortsätta.");
+        Console.ReadKey();
+    }
 }

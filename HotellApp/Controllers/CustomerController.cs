@@ -117,27 +117,32 @@ public class CustomerController
                 var customerId = Convert.ToInt32(Console.ReadLine());
                 var updatedCustomer = Context.Customers.First(c => c.CustomerID == customerId);
 
-                Console.Clear();
-                Console.WriteLine("Förnamn: ");
-                var firstname = Console.ReadLine();
-                Console.WriteLine("Efternamn: ");
-                var lastname = Console.ReadLine();
-                Console.WriteLine("Telefonummer: ");
-                var phone = Console.ReadLine();
-                updatedCustomer.ChangeCustomer(firstname, lastname, phone);
-                Console.WriteLine("Uppgifter uppdaterade!");
-
-                Context.SaveChanges();
-                Console.WriteLine();
-                Console.WriteLine("Tryck på valfri tangent för gå tillbaka till menyn: ");
-                Console.ReadKey();
+                ChangeCustomerInfo(updatedCustomer);
                 break;
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 new ErrorHandling().CatchMessage();
             }
         }
+    }
+
+    public void ChangeCustomerInfo(Customer updatedCustomer)
+    {
+        Console.Clear();
+        Console.WriteLine("Förnamn: ");
+        var firstname = Console.ReadLine();
+        Console.WriteLine("Efternamn: ");
+        var lastname = Console.ReadLine();
+        Console.WriteLine("Telefonummer: ");
+        var phone = Console.ReadLine();
+        updatedCustomer.ChangeCustomer(firstname, lastname, phone);
+        Console.WriteLine("Uppgifter uppdaterade!");
+
+        Context.SaveChanges();
+        Console.WriteLine();
+        Console.WriteLine("Tryck på valfri tangent för gå tillbaka till menyn: ");
+        Console.ReadKey();
     }
 
     public void DeleteCustomer()
@@ -161,27 +166,37 @@ public class CustomerController
                 var controller = Context.Bookings.Any(b => b.Customer == deleteCustomer);
                 if (controller)
                 {
-                    Console.Clear();
-                    Console.WriteLine("Kunden du valt har en bokning och kan ej tas bort.");
-                    Console.WriteLine(" ");
-                    Console.WriteLine("Tryck på valfri tangent för gå tillbaka till menyn: ");
-                    Console.ReadKey();
+                    NoPossibleDelete();
                     break;
                 }
 
-                Context.Customers.Remove(deleteCustomer);
-                Context.SaveChanges();
-                Console.Clear();
-                Console.WriteLine("Kunden är raderad.");
-                Console.WriteLine(" ");
-                Console.WriteLine("Tryck på valfri tangent för gå tillbaka till menyn: ");
-                Console.ReadKey();
+                PossibleDelete(deleteCustomer);
                 break;
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 new ErrorHandling().CatchMessage();
             }
         }
+    }
+
+    public void NoPossibleDelete()
+    {
+        Console.Clear();
+        Console.WriteLine("Kunden du valt har en bokning och kan ej tas bort.");
+        Console.WriteLine(" ");
+        Console.WriteLine("Tryck på valfri tangent för gå tillbaka till menyn: ");
+        Console.ReadKey();
+    }
+
+    public void PossibleDelete(Customer deleteCustomer)
+    {
+        Context.Customers.Remove(deleteCustomer);
+        Context.SaveChanges();
+        Console.Clear();
+        Console.WriteLine("Kunden är raderad.");
+        Console.WriteLine(" ");
+        Console.WriteLine("Tryck på valfri tangent för gå tillbaka till menyn: ");
+        Console.ReadKey();
     }
 }

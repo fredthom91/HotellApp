@@ -149,7 +149,7 @@ public class RoomController
                 Console.ReadKey();
                 break;
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 new ErrorHandling().CatchMessage();
             }
@@ -175,10 +175,7 @@ public class RoomController
 
                 if (updatedRoom.RoomType == "enkel")
                 {
-                    Console.WriteLine("Enkelrum kan bara ha 1 säng.");
-                    Console.WriteLine("Tryck på valfri tangent för att fortsätta");
-                    Console.ReadKey();
-                    Context.SaveChanges();
+                    OneBedOnly();
                     break;
                 }
 
@@ -187,24 +184,18 @@ public class RoomController
                     updatedRoom.RoomSize <= 65 &&
                     updatedRoom.AmountOfBeds == 2)
                 {
-                    Console.WriteLine("Du kan lägga till 1 extra säng.");
-                    Console.WriteLine("Lägg till säng? (J/N): ");
-                    var selectedChoice = Console.ReadLine().ToUpper();
+                    var selectedChoice = OneBedPossible();
                     if (selectedChoice == "J")
                     {
                         updatedRoom.AmountOfBeds = 3;
-                        Console.WriteLine("Säng tillagd!");
-                        Console.WriteLine("Tryck på valfri tangent för att fortsätta");
-                        Console.ReadKey();
+                        BedAddedMessage();
                         Context.SaveChanges();
                         break;
                     }
 
                     if (selectedChoice == "N")
                     {
-                        Console.WriteLine("Ingen säng tillagd.");
-                        Console.WriteLine("Tryck på valfri tangent för att fortsätta");
-                        Console.ReadKey();
+                        NoBedAddedMessage();
                         Context.SaveChanges();
                         break;
                     }
@@ -215,43 +206,9 @@ public class RoomController
                     updatedRoom.RoomSize > 65 &&
                     updatedRoom.AmountOfBeds == 2)
                 {
-                    Console.WriteLine("2 extra sängar är möjliga för detta rum.");
-                    Console.WriteLine("Lägg till säng/sängar? (J/N): ");
-                    var choice2 = Console.ReadLine().ToUpper();
-
-                    if (choice2 == "J")
-                    {
-                        Console.WriteLine("1 eller 2: ");
-                        var choice3 = Convert.ToInt32(Console.ReadLine());
-                        if (choice3 == 1)
-                        {
-                            updatedRoom.AmountOfBeds = 3;
-                            Console.WriteLine("1 extrasäng tillagd.");
-                            Console.WriteLine("Tryck på valfri tangent för att fortsätta");
-                            Console.ReadKey();
-                            Context.SaveChanges();
-                            break;
-                        }
-
-                        if (choice3 == 2)
-                        {
-                            updatedRoom.AmountOfBeds = 4;
-                            Console.WriteLine("2 extrasängar tillagda.");
-                            Console.WriteLine("Tryck på valfri tangent för att fortsätta");
-                            Console.ReadKey();
-                            Context.SaveChanges();
-                            break;
-                        }
-                    }
-
-                    if (choice2 == "N")
-                    {
-                        Console.WriteLine("Ingen extrasäng tillagd.");
-                        Console.WriteLine("Tryck på valfri tangent för att fortsätta");
-                        Console.ReadKey();
-                        Context.SaveChanges();
-                        break;
-                    }
+                    TwoMoreBedsPossible(updatedRoom);
+                    Context.SaveChanges();
+                    break;
                 }
 
 
@@ -259,44 +216,22 @@ public class RoomController
                     updatedRoom.RoomSize > 65 &&
                     updatedRoom.AmountOfBeds == 3)
                 {
-                    Console.WriteLine("1 extra säng är möjlig för detta rum.");
-                    Console.WriteLine("Lägg till säng? (J/N): ");
-                    var choice4 = Console.ReadLine().ToUpper();
-                    if (choice4 == "J")
-                    {
-                        updatedRoom.AmountOfBeds = 4;
-                        Console.WriteLine("Extrasäng tillagd!");
-                        Console.WriteLine("Tryck på valfri tangent för att fortsätta");
-                        Console.ReadKey();
-                        Context.SaveChanges();
-                        break;
-                    }
-
-                    if (choice4 == "N")
-                    {
-                        Console.WriteLine("Ingen säng tillagd.");
-                        Console.WriteLine("Tryck på valfri tangent för att fortsätta");
-                        Console.ReadKey();
-                        Context.SaveChanges();
-                        break;
-                    }
+                    OneMoreBedPossible(updatedRoom);
+                    Context.SaveChanges();
+                    break;
                 }
 
                 if (updatedRoom.RoomType == "dubbel" &&
                     updatedRoom.RoomSize < 65 &&
                     updatedRoom.AmountOfBeds == 3)
                 {
-                    Console.WriteLine("Rummet har redan max tillgängliga sängar.");
-                    Console.WriteLine("Tryck på valfri tangent för att fortsätta");
-                    Console.ReadKey();
+                    MaxBedsMessage();
                     break;
                 }
 
                 if (updatedRoom.AmountOfBeds == 4)
                 {
-                    Console.WriteLine("Rummet har redan max tillgängliga sängar.");
-                    Console.WriteLine("Tryck på valfri tangent för att fortsätta");
-                    Console.ReadKey();
+                    MaxBedsMessage();
                     break;
                 }
             }
@@ -372,7 +307,7 @@ public class RoomController
                     break;
                 }
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 new ErrorHandling().CatchMessage();
             }
@@ -418,10 +353,91 @@ public class RoomController
                 Console.ReadKey();
                 break;
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 new ErrorHandling().CatchMessage();
             }
         }
+    }
+
+    public void OneBedOnly()
+    {
+        Console.WriteLine("Enkelrum kan bara ha 1 säng.");
+        Console.WriteLine("Tryck på valfri tangent för att fortsätta");
+        Console.ReadKey();
+        Context.SaveChanges();
+    }
+
+    public string OneBedPossible()
+    {
+        Console.WriteLine("Du kan lägga till 1 extra säng.");
+        Console.WriteLine("Lägg till säng? (J/N): ");
+        var selectedChoice = Console.ReadLine().ToUpper();
+        return selectedChoice;
+    }
+
+    public void BedAddedMessage()
+    {
+        Console.WriteLine("Säng tillagd!");
+        Console.WriteLine("Tryck på valfri tangent för att fortsätta");
+        Console.ReadKey();
+    }
+
+    public void NoBedAddedMessage()
+    {
+        Console.WriteLine("Ingen säng tillagd.");
+        Console.WriteLine("Tryck på valfri tangent för att fortsätta");
+        Console.ReadKey();
+    }
+
+    public void TwoMoreBedsPossible(Room updatedRoom)
+    {
+        Console.WriteLine("2 extra sängar är möjliga för detta rum.");
+        Console.WriteLine("Lägg till säng/sängar? (J/N): ");
+        var choice2 = Console.ReadLine().ToUpper();
+
+        if (choice2 == "J")
+        {
+            Console.WriteLine("1 eller 2: ");
+            var choice3 = Convert.ToInt32(Console.ReadLine());
+            if (choice3 == 1)
+            {
+                updatedRoom.AmountOfBeds = 3;
+                BedAddedMessage();
+                Context.SaveChanges();
+            }
+
+            if (choice3 == 2)
+            {
+                updatedRoom.AmountOfBeds = 4;
+                Console.WriteLine("2 sängar tillagda.");
+                Console.WriteLine("Tryck på valfri tangent för att fortsätta");
+                Console.ReadKey();
+                Context.SaveChanges();
+            }
+        }
+
+        if (choice2 == "N") NoBedAddedMessage();
+    }
+
+    public void OneMoreBedPossible(Room updatedRoom)
+    {
+        Console.WriteLine("1 extra säng är möjlig för detta rum.");
+        Console.WriteLine("Lägg till säng? (J/N): ");
+        var choice4 = Console.ReadLine().ToUpper();
+        if (choice4 == "J")
+        {
+            updatedRoom.AmountOfBeds = 4;
+            BedAddedMessage();
+        }
+
+        if (choice4 == "N") NoBedAddedMessage();
+    }
+
+    public void MaxBedsMessage()
+    {
+        Console.WriteLine("Rummet har redan max tillgängliga sängar.");
+        Console.WriteLine("Tryck på valfri tangent för att fortsätta");
+        Console.ReadKey();
     }
 }
