@@ -20,12 +20,13 @@ public class BookingController
         var table = new Table();
         var _table = new Table();
         var newBooking = new Booking();
-        new CustomerController(Context).GetCustomers();
+        
 
 
         while (true)
             try
             {
+                new CustomerController(Context).GetCustomers();
                 SetCustomer(newBooking);
 
                 Console.Clear();
